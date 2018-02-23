@@ -24,8 +24,8 @@ namespace ProShine_Script_Creator
 
         private void Init()
         {
-            OutputWin.AppendText("                   ~ProShine Script Creator~" + Environment.NewLine);
-            OutputWin.AppendText("            https://proshine-bot.com/thread-2769.html" + Environment.NewLine);
+            OutputWin.AppendText("\t\t\t~ProShine Script Creator~" + Environment.NewLine);
+            OutputWin.AppendText("\t\thttps://proshine-bot.com/thread-2769.html" + Environment.NewLine);
 
             foreach (var pokeName in PokemonNames.PokemonNamesArray)
                 PokeBox.Items.Add(pokeName);
@@ -211,17 +211,19 @@ namespace ProShine_Script_Creator
             {
                 WriteCode("local rolePlayPokeUser = nil");
                 WriteCode("");
-
-                WriteCode("local abilityList =");
-                WriteCode("{");
-                foreach (var abiName in _abilities)
+                if (_abilities.Count > 0)
                 {
-                    WriteCode($"'{abiName}',", 1);
-                }
-                WriteCode("}");
-                WriteCode("");
+                    WriteCode("local abilityList =");
+                    WriteCode("{");
+                    foreach (var abiName in _abilities)
+                    {
+                        WriteCode($"'{abiName}',", 1);
+                    }
+                    WriteCode("}");
+                    WriteCode("");
 
-                WriteCode("");
+                    WriteCode("");
+                }
             }
             
             WriteCode("local catchList =");
@@ -269,7 +271,7 @@ namespace ProShine_Script_Creator
                 WriteCode("");
             }
 
-            //Return pokemon with false swipe
+            //Return pokemon with false swipe or role play
             if (FalseSwipeCheckBox.IsChecked == true || RolePlayCheckBox.IsChecked == true)
             {
                 WriteCode("function getPokemonWithMove(moveName)");
@@ -299,22 +301,28 @@ namespace ProShine_Script_Creator
             }
 
             //onPathAction()
+            WriteCode("function onPathAction()");
             if (_maps.Count > 1)
             {
-                WriteCode("function onPathAction()");
                 if (RolePlayCheckBox.IsChecked == true)
                 {
                     WriteCode("foundCorrectAbi = false", 1);
                     WriteCode("used_role_play = false", 1);
                 }
+                //If the false swiper got swapped.
+                if (FalseSwipeCheckBox.IsChecked == true)
+                    WriteCode("falseSwipePokeUser = getPokemonWithMove('False Swipe')", 1);
+                //If the role player got swapped
+                if (RolePlayCheckBox.IsChecked == true)
+                    WriteCode("rolePlayPokeUser = getPokemonWithMove('Role Play')", 1);
                 WriteCode("");
 
                 if (FalseSwipeCheckBox.IsChecked == true && RolePlayCheckBox.IsChecked == true)
-                    WriteCode("if isPokemonUsable(1) and getRemainingPowerPoints(falseSwipePokeUser, 'False Swipe') > 1 and getRemainingPowerPoints(rolePlayPokeUser, 'Role Play') > 1 then", 1);
+                    WriteCode("if isPokemonUsable(1) and isPokemonUsable(falseSwipePokeUser) and isPokemonUsable(rolePlayPokeUser) and getRemainingPowerPoints(falseSwipePokeUser, 'False Swipe') > 1 and getRemainingPowerPoints(rolePlayPokeUser, 'Role Play') > 1 then", 1);
                 else if (FalseSwipeCheckBox.IsChecked == true && RolePlayCheckBox.IsChecked == false)
-                    WriteCode("if isPokemonUsable(1) and getRemainingPowerPoints(falseSwipePokeUser, 'False Swipe') > 1 then", 1);
+                    WriteCode("if isPokemonUsable(1) and isPokemonUsable(falseSwipePokeUser) and getRemainingPowerPoints(falseSwipePokeUser, 'False Swipe') > 1 then", 1);
                 else if (FalseSwipeCheckBox.IsChecked == false && RolePlayCheckBox.IsChecked == true)
-                    WriteCode("if isPokemonUsable(1) and getRemainingPowerPoints(rolePlayPokeUser, 'Role Play') > 1 then", 1);
+                    WriteCode("if isPokemonUsable(1) and isPokemonUsable(rolePlayPokeUser) and getRemainingPowerPoints(rolePlayPokeUser, 'Role Play') > 1 then", 1);
                 else
                     WriteCode("if isPokemonUsable(1) then", 1);
 
@@ -326,20 +334,18 @@ namespace ProShine_Script_Creator
                 WriteCode("return usePokecenter()", 3);
                 WriteCode("end", 2);
                 WriteCode("end", 1);
-                WriteCode("end");
             }
             else
             {
-                WriteCode("function onPathAction()");
                 if (RolePlayCheckBox.IsChecked == true)
                 {
                     WriteCode("foundCorrectAbi = false", 1);
                     WriteCode("used_role_play = false", 1);
+                    WriteCode("");
                 }
-                WriteCode("");
                 WriteCode("return moveToGrass() or moveToWater() or moveToNormalGround()", 1);
-                WriteCode("end");
             }
+            WriteCode("end");
 
             WriteCode("");
 
@@ -378,7 +384,7 @@ namespace ProShine_Script_Creator
             WriteCode("end");
 
             WriteCode("");
-            //if role play then battle message process codes
+            //if using role play then codes for prcessing battle messages
             if (RolePlayCheckBox.IsChecked == true)
             {
                 WriteCode("function onBattleMessage(message)");
@@ -394,11 +400,16 @@ namespace ProShine_Script_Creator
 
             Print("Script generated and copied to your clipboard.");
         }
+        /// <summary>
+        /// This method creates a role  play codes for the script. 
+        /// </summary>
         private void RolePlayLuaCode()
         {
             WriteCode("if (isWildBattle() and (catchList[getOpponentName()])) then", 1);
             WriteCode("if isPokemonUsable(falseSwipePokeUser) and getRemainingPowerPoints(falseSwipePokeUser, 'False Swipe') ~= 0 then", 2);
-            WriteCode("if not used_role_play then", 3);
+            WriteCode("if not used_role_play and getActivePokemonNumber() ~= rolePlayPokeUser then", 3);
+            WriteCode("return sendPokemon(rolePlayPokeUser)", 4);
+            WriteCode("elseif getActivePokemonNumber() == rolePlayPokeUser and not used_role_play then", 3);
             WriteCode("used_role_play = true", 4);
             WriteCode("return useMove('Role Play')", 4);
             WriteCode("elseif foundCorrectAbi then", 3);
