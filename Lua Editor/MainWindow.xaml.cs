@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,6 +13,7 @@ namespace ProShine_Script_Creator
         private readonly List<string> _names = new List<string>();
         private readonly List<string> _maps = new List<string>();
         private readonly List<string> _abilities = new List<string>();
+        private ArrayList MapsSorted = new ArrayList();
         private StringBuilder _codeBuilder;
 
         public MainWindow()
@@ -25,31 +28,25 @@ namespace ProShine_Script_Creator
         private void Init()
         {
             OutputWin.AppendText("\t\t\t~ProShine Script Creator~" + Environment.NewLine);
-            OutputWin.AppendText("\t\thttps://proshine-bot.com/thread-2769.html" + Environment.NewLine);
+            OutputWin.AppendText("\t\thttps://proshine-bot.com/thread-2950.html" + Environment.NewLine);
+
+            foreach(var abiName in AbilitiesNames.AbilitiesNamesArray)
+                AbilitiesName.Items.Add(abiName);
 
             foreach (var pokeName in PokemonNames.PokemonNamesArray)
                 PokeBox.Items.Add(pokeName);
 
+            ///add kanto maps first
+            MapsSorted.Clear();
+            MapsBox.Items.Clear();
+
             foreach (var mapName in MapNames.KantoMaps)
-                KantoMapsBox.Items.Add(mapName);
+                MapsSorted.Add(mapName);
 
-            foreach (var mapName in MapNames.SeviiMaps)
-                SeviiMapsBox.Items.Add(mapName);
+            MapsSorted.Sort();
 
-            foreach (var mapName in MapNames.JohtoMaps)
-                JohtoMapsBox.Items.Add(mapName);
-
-            foreach (var mapName in MapNames.HoennMaps)
-                HoennMapsBox.Items.Add(mapName);
-                
-            foreach (var mapName in MapNames.SinnohMaps)
-                SinnohMapsBox.Items.Add(mapName);
-                
-            foreach (var mapName in MapNames.EventMaps)
-                EventMapsBox.Items.Add(mapName);
-
-            foreach(var abiName in AbilitiesNames.AbilitiesNamesArray)
-                AbilitiesName.Items.Add(abiName);
+            foreach (var map in MapsSorted)
+                MapsBox.Items.Add(map);            
 
             RegionBox.Items.Add("Kanto");
             RegionBox.Items.Add("Johto");
@@ -57,6 +54,9 @@ namespace ProShine_Script_Creator
             RegionBox.Items.Add("Sinnoh");
             RegionBox.Items.Add("Sevii Islands");
             RegionBox.Items.Add("Event Maps");
+
+            RegionBox.SelectedIndex = 0;
+            MapsBox.SelectedIndex = 0;
         }
 
         private void Print(string msg)
@@ -91,24 +91,10 @@ namespace ProShine_Script_Creator
         //Add map name to list
         private void AddMapButton_Click(object sender, RoutedEventArgs e)
         {
-            ComboBox selectedBox;
 
-            if (RegionBox.Text == "Kanto")
-                selectedBox = KantoMapsBox;
-            else if (RegionBox.Text == "Sevii Islands")
-                selectedBox = SeviiMapsBox;
-            else if (RegionBox.Text == "Johto")
-                selectedBox = JohtoMapsBox;
-            else if (RegionBox.Text == "Hoenn")
-                selectedBox = HoennMapsBox;
-            else if (RegionBox.Text == "Sinnoh")
-                selectedBox = SinnohMapsBox;
-            else
-                selectedBox = EventMapsBox;
+            if (_maps.Contains(MapsBox.Text)) return;
 
-            if (_maps.Contains(selectedBox.Text)) return;
-
-            _maps.Add(selectedBox.Text);
+            _maps.Add(MapsBox.Text);
             MapList.Items.Refresh();
             MapList.SelectedIndex = MapList.Items.Count - 1;
             MapList.ScrollIntoView(MapList.SelectedItem);
@@ -183,6 +169,24 @@ namespace ProShine_Script_Creator
         //Generate the script
         private void CreateScript_Click(object sender, RoutedEventArgs e)
         {
+            string valueOfRectangle = "";
+            if ((Boolean)useMountCheckBox.IsChecked && string.IsNullOrEmpty(MountName.Text))
+            {
+                Print("Please add your mount/bicycle name in the extra text box or untick use mount/bicycle checkbox.");
+                return;
+            }
+
+
+            if ((Boolean)RectangleMovementCheck.IsChecked && string.IsNullOrEmpty(RectangleText.Text))
+            {
+                Print("Rectangle movement's values can't be null or empty. Or if you don't want to add it then untick the Rectangle Movement check box");
+                return;
+            }
+            else
+            {
+                valueOfRectangle = Regex.Replace(RectangleText.Text.ToLowerInvariant(), @"[^0-9, ]", "");
+            }
+
             Print("Creating your custom script, please wait...");
 
             _codeBuilder = new StringBuilder();
@@ -317,6 +321,17 @@ namespace ProShine_Script_Creator
                     WriteCode("rolePlayPokeUser = getPokemonWithMove('Role Play')", 1);
                 WriteCode("");
 
+                //Using mount/bike
+                if ((bool)useMountCheckBox.IsChecked)
+                {
+                    WriteCode($"if isOutside() and hasItem('{MountName.Text}') and not isSurfing() and not isMounted() then", 1);
+                    WriteCode($"log('Using {MountName.Text}......')", 2);
+                    WriteCode($"return useItem('{MountName.Text}')", 2);
+                    WriteCode("end", 1);
+
+                    WriteCode("");
+                }
+
                 if (FalseSwipeCheckBox.IsChecked == true && RolePlayCheckBox.IsChecked == true)
                     WriteCode("if isPokemonUsable(1) and isPokemonUsable(falseSwipePokeUser) and isPokemonUsable(rolePlayPokeUser) and getRemainingPowerPoints(falseSwipePokeUser, 'False Swipe') > 1 and getRemainingPowerPoints(rolePlayPokeUser, 'Role Play') > 1 then", 1);
                 else if (FalseSwipeCheckBox.IsChecked == true && RolePlayCheckBox.IsChecked == false)
@@ -327,7 +342,10 @@ namespace ProShine_Script_Creator
                     WriteCode("if isPokemonUsable(1) then", 1);
 
                 WriteCode("if lastMap() then", 2);
-                WriteCode("return moveToGrass() or moveToWater() or moveToNormalGround()", 3);
+                if ((bool)RectangleMovementCheck.IsChecked)
+                    WriteCode($"return moveToRectangle({valueOfRectangle})", 3);
+                else
+                    WriteCode("return moveToGrass() or moveToWater() or moveToNormalGround()", 3);
                 WriteCode("end", 2);
                 WriteCode("else", 1);
                 WriteCode("if firstMap() then", 2);
@@ -343,7 +361,22 @@ namespace ProShine_Script_Creator
                     WriteCode("used_role_play = false", 1);
                     WriteCode("");
                 }
-                WriteCode("return moveToGrass() or moveToWater() or moveToNormalGround()", 1);
+
+                //Using mount/bike
+                if ((bool)useMountCheckBox.IsChecked)
+                {
+                    WriteCode($"if isOutside() and hasItem('{MountName.Text}') and not isSurfing() and not isMounted() then", 1);
+                    WriteCode($"log('Using {MountName.Text}......')", 2);
+                    WriteCode($"return useItem('{MountName.Text}')", 2);
+                    WriteCode("end", 1);
+
+                    WriteCode("");
+                }
+
+                if ((bool)RectangleMovementCheck.IsChecked)
+                    WriteCode($"return moveToRectangle({valueOfRectangle})", 2);
+                else
+                    WriteCode("return moveToGrass() or moveToWater() or moveToNormalGround()", 2);
             }
             WriteCode("end");
 
@@ -431,30 +464,92 @@ namespace ProShine_Script_Creator
         }
         private void RegionBox_DropDownClosed(object sender, EventArgs e)
         {
-            KantoMapsBox.Visibility = Visibility.Hidden;
-            SeviiMapsBox.Visibility = Visibility.Hidden;
-            JohtoMapsBox.Visibility = Visibility.Hidden;
-            HoennMapsBox.Visibility = Visibility.Hidden;
-            SinnohMapsBox.Visibility = Visibility.Hidden;
-            EventMapsBox.Visibility = Visibility.Hidden;
 
             if (RegionBox.Text == "Kanto")
-                KantoMapsBox.Visibility = Visibility.Visible;
+            {
+                MapsSorted.Clear();
+                MapsBox.Items.Clear();
+
+                foreach (var mapName in MapNames.KantoMaps)
+                    MapsSorted.Add(mapName);
+
+                MapsSorted.Sort();
+
+                foreach (var map in MapsSorted)
+                    MapsBox.Items.Add(map);
+            }
 
             if (RegionBox.Text == "Sevii Islands")
-                SeviiMapsBox.Visibility = Visibility.Visible;
+            {
+                MapsSorted.Clear();
+                MapsBox.Items.Clear();
+
+                foreach (var mapName in MapNames.KantoMaps)
+                    MapsSorted.Add(mapName);
+
+                MapsSorted.Sort();
+
+                foreach (var map in MapsSorted)
+                    MapsBox.Items.Add(map);
+            }
 
             if (RegionBox.Text == "Johto")
-                JohtoMapsBox.Visibility = Visibility.Visible;
+            {
+                MapsSorted.Clear();
+                MapsBox.Items.Clear();
+
+                foreach (var mapName in MapNames.JohtoMaps)
+                    MapsSorted.Add(mapName);
+
+                MapsSorted.Sort();
+
+                foreach (var map in MapsSorted)
+                    MapsBox.Items.Add(map);
+            }
 
             if (RegionBox.Text == "Hoenn")
-                HoennMapsBox.Visibility = Visibility.Visible;
+            {
+                MapsSorted.Clear();
+                MapsBox.Items.Clear();
+
+                foreach (var mapName in MapNames.HoennMaps)
+                    MapsSorted.Add(mapName);
+
+                MapsSorted.Sort();
+
+                foreach (var map in MapsSorted)
+                    MapsBox.Items.Add(map);
+            }
 
             if (RegionBox.Text == "Sinnoh")
-                SinnohMapsBox.Visibility = Visibility.Visible;
+            {
+                MapsSorted.Clear();
+                MapsBox.Items.Clear();
+
+                foreach (var mapName in MapNames.SinnohMaps)
+                    MapsSorted.Add(mapName);
+
+                MapsSorted.Sort();
+
+                foreach (var map in MapsSorted)
+                    MapsBox.Items.Add(map);
+            }
 
             if (RegionBox.Text == "Event Maps")
-                EventMapsBox.Visibility = Visibility.Visible;
+            {
+                MapsSorted.Clear();
+                MapsBox.Items.Clear();
+
+                foreach (var mapName in MapNames.EventMaps)
+                    MapsSorted.Add(mapName);
+
+                MapsSorted.Sort();
+
+                foreach (var map in MapsSorted)
+                    MapsBox.Items.Add(map);
+            }
+
+            MapsBox.SelectedIndex = 0;
         }
 
         private void RolePlayCheckBox_Checked(object sender, RoutedEventArgs e)
@@ -486,6 +581,30 @@ namespace ProShine_Script_Creator
             AbilitiesList.Items.Refresh();
             AbilitiesList.SelectedIndex = AbilitiesList.Items.Count - 1;
             AbilitiesList.ScrollIntoView(AbilitiesList.SelectedItem);
+        }
+
+        private void RectangleMovementCheck_Checked(object sender, RoutedEventArgs e)
+        {
+            RectangleText.Visibility = Visibility.Visible;
+        }
+
+        private void RectangleMovementCheck_Unchecked(object sender, RoutedEventArgs e)
+        {
+            RectangleText.Visibility = Visibility.Hidden;
+        }
+
+        private void useMountCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            MountName.Visibility = Visibility.Hidden;
+            Height = 367.741;
+            CreateScript.Margin = new Thickness(394, 296, 0, 0);
+        }
+
+        private void useMountCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            MountName.Visibility = Visibility.Visible;
+            Height = 396.984;
+            CreateScript.Margin = new Thickness(394, 323, 0, 0);
         }
     }
 }

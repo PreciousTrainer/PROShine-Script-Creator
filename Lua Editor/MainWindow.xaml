@@ -4,11 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Proshine Script Creator" Height="364.084" Width="525.001" WindowStyle="ThreeDBorderWindow" Background="#FF2D2D30" ResizeMode="CanMinimize" Icon="proshine.png">
+        Title="Proshine Script Creator" Height="367.741" Width="525.001" WindowStyle="ThreeDBorderWindow" Background="#FF2D2D30" ResizeMode="CanMinimize" Icon="proshine.png">
     <Grid>
         <TextBox x:Name="OutputWin" HorizontalAlignment="Left" Foreground="LimeGreen" Height="87" Margin="10,10,0,0" VerticalAlignment="Top" TextWrapping="Wrap" Width="484" FontFamily="Consolas" Background="Black" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         </TextBox>
-        <Button x:Name="CreateScript" Content="Generate Script" HorizontalAlignment="Left" Margin="394,291,0,0" VerticalAlignment="Top" Width="100" Click="CreateScript_Click"/>
+        <Button x:Name="CreateScript" Content="Generate Script" HorizontalAlignment="Left" Margin="394,296,0,0" VerticalAlignment="Top" Width="100" Click="CreateScript_Click"/>
         <ComboBox x:Name="PokeBox" HorizontalAlignment="Left" Margin="10,103,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="100" Height="23" FontFamily="Consolas" Foreground="Black" IsEditable="True"/>
         <ListBox x:Name="NameList" HorizontalAlignment="Left" Height="101" Margin="215,103,0,0" VerticalAlignment="Top" Width="100" Background="Black" Foreground="LimeGreen" FontFamily="Consolas"/>
         <Button x:Name="AddPokemonButton" Content="Add" HorizontalAlignment="Left" Margin="135,103,0,0" VerticalAlignment="Top" Width="75" Click="AddPokemonButton_Click">
@@ -34,12 +34,7 @@
         </Button>
         <Button x:Name="CreditsButton" Content="Credits" HorizontalAlignment="Left" Margin="419,103,0,0" VerticalAlignment="Top" Width="75" Click="CreditsButton_Click"/>
         <ComboBox x:Name="RegionBox" HorizontalAlignment="Left" Margin="11,210,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80" DropDownClosed="RegionBox_DropDownClosed"/>
-        <ComboBox x:Name="KantoMapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="11,237,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80"/>
-        <ComboBox x:Name="SeviiMapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="10,226,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80" Visibility="Hidden"/>
-        <ComboBox x:Name="JohtoMapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="10,226,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80" Visibility="Hidden"/>
-        <ComboBox x:Name="HoennMapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="10,226,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80" Visibility="Hidden"/>
-        <ComboBox x:Name="SinnohMapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="10,226,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80" Visibility="Hidden"/>
-        <ComboBox x:Name="EventMapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="10,226,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80" Visibility="Hidden"/>
+        <ComboBox x:Name="MapsBox" IsEditable="True" HorizontalAlignment="Left" Margin="11,237,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0" MaxDropDownHeight="80"/>
         <CheckBox Name="FalseSwipeCheckBox" Content="Use False Swipe" HorizontalAlignment="Left" Margin="10,133,0,0" VerticalAlignment="Top" Foreground="#FFEE7109" RenderTransformOrigin="0.497,0.617" Checked="OnFalseSwipeChanged" Unchecked="OnFalseSwipeChanged">
             <CheckBox.ToolTip>
                 <TextBlock>If checked, will use False Swipe before attempting to catch Pokemon.</TextBlock>
@@ -77,5 +72,25 @@
                 <TextBlock><Run Text="Removes the selected ability from the ability list."/></TextBlock>
             </Button.ToolTip>
         </Button>
+        <CheckBox x:Name="RectangleMovementCheck" Content="Use Rectangle Movment" HorizontalAlignment="Left" Margin="10,165,0,0" VerticalAlignment="Top" Foreground="#FFEE7109" Checked="RectangleMovementCheck_Checked" Unchecked="RectangleMovementCheck_Unchecked">
+            <CheckBox.ToolTip>
+                <TextBlock><Run Text="If checked, you can add your Rectangle Movement."/></TextBlock>
+            </CheckBox.ToolTip>
+        </CheckBox>
+        <TextBox Visibility="Hidden" x:Name="RectangleText"  HorizontalAlignment="Left" Foreground="LimeGreen" Height="22" Margin="11,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"  FontFamily="Consolas" Background="Black" IsReadOnly="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <TextBox.ToolTip>
+                <TextBlock><Run Text="Add like this example: 16(minX), 18(minY), 25(maxX), 20(maxY). DON'T FORGET COMMAS(,) after each x and y."/></TextBlock>
+            </TextBox.ToolTip>
+        </TextBox>
+        <CheckBox x:Name="useMountCheckBox" Content="Use Mount/Bicycle" HorizontalAlignment="Left" Margin="11,296,0,0" VerticalAlignment="Top" Foreground="#FFEE7109" Checked="useMountCheckBox_Checked" Unchecked="useMountCheckBox_Unchecked">
+            <CheckBox.ToolTip>
+                <TextBlock><Run Text="If checked, you can add your mount/bicycle name."/></TextBlock>
+            </CheckBox.ToolTip>
+        </CheckBox>
+        <TextBox Visibility="Hidden" x:Name="MountName" HorizontalAlignment="Left" Foreground="LimeGreen" Height="22" Margin="11,316,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"  FontFamily="Consolas" Background="Black" IsReadOnly="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <TextBox.ToolTip>
+                <TextBlock><Run Text="Add your mount/bicycle name."/></TextBlock>
+            </TextBox.ToolTip>
+        </TextBox>
     </Grid>
 </Window>
